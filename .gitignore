@@ -1,0 +1,42 @@
+# --- CMake ---
+# Ignore the entire build directory (adjust name if you use something else like /build)
+build/
+out/
+bin/
+obj/
+
+# Common CMake generated files
+CMakeCache.txt
+CMakeFiles/
+CMakeScripts/
+Testing/
+Makefile
+cmake_install.cmake
+install_manifest.txt
+compile_commands.json
+CTestTestfile.cmake
+_deps/
+
+# --- Visual Studio ---
+.vs/
+*.user
+*.userosscache
+*.sln.docstates
+*.suo
+
+# --- VS Code ---
+.vscode/
+.cache/
+
+# --- Compiled C++ Files ---
+*.obj
+*.o
+*.a
+*.lib
+*.so
+*.dylib
+*.exe
+*.dll
+*.pdb
+*.ilk
+*.exp
