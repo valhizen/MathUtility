@@ -141,9 +141,8 @@ static void MCSC_Check(std::function<float(float) > func, char* x_start_value, c
 		ImGui::Text("Function does not satisfies Immediate Value Theorem");
 	}
 	float root =findRoot(func, continuous_check_x1, continuous_check_x2);
-	if (root) {
-		ImGui::Text("The Root of the Equation is %f", root);
-	}
+	ImGui::Text("The Root of the Equation is %f", root);
+	
 	ImGui::End();
 }
 
@@ -331,6 +330,12 @@ int main()
 	ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
 	ImGui_ImplOpenGL3_Init();
 
+
+	// Setup Platform/Renderer backends
+	ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
+
+	//Note : Sarbesh " Need to Do this Later"
+	//ImGui_ImplOpenGL3_Init(glsl_version);
 
 	ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
