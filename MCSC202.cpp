@@ -30,30 +30,30 @@ static bool isContinuousAtPoint(std::function<float(float)> func, float point) {
 
 }
 
-static bool isContinuousAtInterval(std::function<float(float)> func, float point_a, float point_b) 
+static bool isContinuousAtInterval(std::function<float(float)> func, float point_a, float point_b)
+{
+	float step = (point_b - point_a) / samples;
+
+	for (int i = 0; i <= samples; i++)
 	{
-		float step = (point_b - point_a) / samples;
+		float x = point_a + i * step;
 
-		for (int i = 0; i <= samples; i++)
-		{
-			float x = point_a + i * step;
-
-			if (!isContinuousAtPoint(func, x))
-				return false;
-		}
-		return true;
+		if (!isContinuousAtPoint(func, x))
+			return false;
 	}
+	return true;
+}
 
 static bool CheckIntermediateValueTherom(std::function<float(float)> func, float point_a, float point_b) {
 
-	if (!isContinuousAtInterval(func, point_a, point_b)){
+	if (!isContinuousAtInterval(func, point_a, point_b)) {
 		return false;
 	}
 
 	float val_1 = func(point_a);
 	float val_2 = func(point_b);
 
-	return { val_1 * val_2 <= 0};
+	return { val_1 * val_2 <= 0 };
 }
 
 std::function<float(float)> function = nullptr;
@@ -83,10 +83,10 @@ static float findRoot(std::function<float(float)> func, float x1, float x2) {
 		mid = (point_1 + point_2) / 2;
 		float value = func(mid);
 		if (value < 0) {
-			 point_1 = mid;
+			point_1 = mid;
 		}
 		else {
-			 point_2 = mid;
+			point_2 = mid;
 		}
 	}
 
@@ -94,13 +94,13 @@ static float findRoot(std::function<float(float)> func, float x1, float x2) {
 
 }
 
-static void MCSC_Check(std::function<float(float) > func, char* x_start_value, char* x_end_value, char* game_value_x1, char* game_value_x2){
+static void MCSC_Check(std::function<float(float) > func, char* x_start_value, char* x_end_value, char* game_value_x1, char* game_value_x2) {
 
 	float x_start = strtof(x_start_value, nullptr);
 	float x_end = strtof(x_end_value, nullptr);
 	float continuous_check_x1 = strtof(game_value_x1, nullptr);
 	float continuous_check_x2 = strtof(game_value_x2, nullptr);
-	
+
 	ImGui::Begin("MSCS CHECK WINDOW");
 
 	float value_at_x1 = func(continuous_check_x1);
@@ -115,14 +115,8 @@ static void MCSC_Check(std::function<float(float) > func, char* x_start_value, c
 		ImGui::Text("Root Is not in the Given Interval");
 	}
 
-
-
-
-
 	ImGui::Text("At Point %f, is %f", continuous_check_x1, value_at_x1);
 	ImGui::Text("At Point %f, is %f", continuous_check_x2, value_at_x2);
-
-
 
 	if (isContinuousAtInterval(func, continuous_check_x1, continuous_check_x2)) {
 		ImGui::Text("Function is Continuous ");
@@ -140,46 +134,48 @@ static void MCSC_Check(std::function<float(float) > func, char* x_start_value, c
 	{
 		ImGui::Text("Function does not satisfies Immediate Value Theorem");
 	}
-	float root =findRoot(func, continuous_check_x1, continuous_check_x2);
+	float root = findRoot(func, continuous_check_x1, continuous_check_x2);
 	ImGui::Text("The Root of the Equation is %f", root);
-	
+
 	ImGui::End();
 }
 
-static void DrawFunctionGraph(std::function<float(float)> value, char* x_start_value, char* x_end_value) {
+static void DrawFunctionGraph(std::function<float(float)> func, char* x_start_value, char* x_end_value, char* game_value_x1, char* game_value_x2) {
 
 	float x_start = strtof(x_start_value, nullptr);
 	float x_end = strtof(x_end_value, nullptr);
+
+	float continuous_check_x1 = strtof(game_value_x1, nullptr);
+	float continuous_check_x2 = strtof(game_value_x2, nullptr);
+
+	float value_at_x1 = func(continuous_check_x1);
+	float value_at_x2 = func(continuous_check_x2);
+	float is_root_avilable = value_at_x1 * value_at_x2;
+	float root = findRoot(func, continuous_check_x1, continuous_check_x2);
 
 	if (x_start >= x_end) return;
 
 	const float graph_width = 1000.0f;
 	const float graph_height = 800.0f;
-
-	std::vector<ImVec2> points;
-
-	float y_min = FLT_MAX, y_max = -FLT_MAX;
+	const int   grid_lines = 10;
 
 	float step = (x_end - x_start) / samples;
+	float y_min = FLT_MAX, y_max = -FLT_MAX;
 
+	std::vector<ImVec2> points;
 	for (float x = x_start; x <= x_end; x += step) {
-		float y = value(x);
+		float y = func(x);
 		if (!std::isfinite(y)) continue;
 		points.push_back(ImVec2(x, y));
 		y_min = std::min(y_min, y);
 		y_max = std::max(y_max, y);
 	}
 
-	
-
 	if (y_min == y_max) { y_min -= 1.0f; y_max += 0.5f; }
 
 	ImGui::Begin("Function Graph");
 	ImDrawList* draw_list = ImGui::GetWindowDrawList();
-	ImVec2 origin = ImGui::GetCursorScreenPos();
-
-
-	ImVec2 graph_tl = ImVec2(origin.x , origin.y);
+	ImVec2 graph_tl = ImGui::GetCursorScreenPos();
 
 	auto toScreen = [&](float x, float y) -> ImVec2 {
 		float sx = graph_tl.x + (x - x_start) / (x_end - x_start) * graph_width;
@@ -187,75 +183,40 @@ static void DrawFunctionGraph(std::function<float(float)> value, char* x_start_v
 		return ImVec2(sx, sy);
 		};
 
-	const int grid_lines = 10;
 	ImU32 grid_color = IM_COL32(80, 80, 80, 255);
-
 	for (int i = 0; i <= grid_lines; i++) {
 		float t = (float)i / grid_lines;
 
 		float gx = graph_tl.x + t * graph_width;
-		draw_list->AddLine(
-			ImVec2(gx, graph_tl.y),
-			ImVec2(gx, graph_tl.y + graph_height),
-			grid_color, 1.0f
-		);
-
-		float x_label_val = x_start + t * (x_end - x_start);
+		draw_list->AddLine(ImVec2(gx, graph_tl.y), ImVec2(gx, graph_tl.y + graph_height), grid_color, 1.0f);
 		char x_label[16];
-		snprintf(x_label, sizeof(x_label), "%.1f", x_label_val);
-		draw_list->AddText(
-			ImVec2(gx - 10.0f, graph_tl.y + graph_height + 4.0f),
-			IM_COL32(200, 200, 200, 255), x_label
-		);
+		snprintf(x_label, sizeof(x_label), "%.1f", x_start + t * (x_end - x_start));
+		draw_list->AddText(ImVec2(gx - 10.0f, graph_tl.y + graph_height + 4.0f), IM_COL32(200, 200, 200, 255), x_label);
 
 		float gy = graph_tl.y + t * graph_height;
-		draw_list->AddLine(
-			ImVec2(graph_tl.x, gy),
-			ImVec2(graph_tl.x + graph_width, gy),
-			grid_color, 1.0f
-		);
-
-		float y_label_val = y_max - t * (y_max - y_min);
+		draw_list->AddLine(ImVec2(graph_tl.x, gy), ImVec2(graph_tl.x + graph_width, gy), grid_color, 1.0f);
 		char y_label[16];
-		snprintf(y_label, sizeof(y_label), "%.1f", y_label_val);
-		draw_list->AddText(
-			ImVec2(graph_tl.x , gy - 7.0f),
-			IM_COL32(200, 200, 200, 255), y_label
-		);
+		snprintf(y_label, sizeof(y_label), "%.1f", y_max - t * (y_max - y_min));
+		draw_list->AddText(ImVec2(graph_tl.x, gy - 7.0f), IM_COL32(200, 200, 200, 255), y_label);
 	}
 
-	draw_list->AddRect(
-		graph_tl,
-		ImVec2(graph_tl.x + graph_width, graph_tl.y + graph_height),
-		IM_COL32(180, 180, 180, 255), 0.0f, 0, 1.5f
-	);
+	draw_list->AddRect(graph_tl, ImVec2(graph_tl.x + graph_width, graph_tl.y + graph_height), IM_COL32(180, 180, 180, 255), 0.0f, 0, 1.5f);
 
 	ImU32 axis_color = IM_COL32(200, 200, 200, 200);
+	if (x_start <= 0.0f && x_end >= 0.0f)
+		draw_list->AddLine(toScreen(0.0f, y_max), toScreen(0.0f, y_min), axis_color, 1.5f);
+	if (y_min <= 0.0f && y_max >= 0.0f)
+		draw_list->AddLine(toScreen(x_start, 0.0f), toScreen(x_end, 0.0f), axis_color, 1.5f);
 
-	if (x_start <= 0.0f && x_end >= 0.0f) {
-		ImVec2 top = toScreen(0.0f, y_max);
-		ImVec2 bottom = toScreen(0.0f, y_min);
-		draw_list->AddLine(top, bottom, axis_color, 1.5f);
-	}
-
-	if (y_min <= 0.0f && y_max >= 0.0f) {
-		ImVec2 left = toScreen(x_start, 0.0f);
-		ImVec2 right = toScreen(x_end, 0.0f);
-		draw_list->AddLine(left, right, axis_color, 1.5f);
-	}
+	draw_list->AddCircle(toScreen(root, 0.0f), 2.0f, ImColor{ 0, 0, 255, 255 }, 10, 2.0f);
 
 	std::vector<ImVec2> screen_points;
 	screen_points.reserve(points.size());
 	for (const ImVec2& p : points)
 		screen_points.push_back(toScreen(p.x, p.y));
+	draw_list->AddPolyline(screen_points.data(), (int)screen_points.size(), IM_COL32(255, 80, 80, 255), ImDrawFlags_None, 2.0f);
 
-	draw_list->AddPolyline(
-		screen_points.data(), (int)screen_points.size(),
-		IM_COL32(255, 80, 80, 255), ImDrawFlags_None, 2.0f
-	);
-
-	ImGui::Dummy(ImVec2(graph_width , graph_height));
-
+	ImGui::Dummy(ImVec2(graph_width, graph_height));
 	ImGui::End();
 }
 
@@ -351,6 +312,7 @@ int main()
 		ImGui_ImplOpenGL3_NewFrame();
 		ImGui_ImplSDL3_NewFrame();
 		ImGui::NewFrame();
+
 		ImGui::InputText("Take Function", input_buffer, IM_COUNTOF(input_buffer));
 		ImGui::InputText("X_AXIS_START", x_axis_start_buffer, IM_COUNTOF(x_axis_start_buffer));
 		ImGui::InputText("X_AXIS_END", x_axis_end_buffer, IM_COUNTOF(x_axis_end_buffer));
@@ -361,11 +323,11 @@ int main()
 
 		if (ImGui::Button("Evaluate")) {
 			Parser parse(input_buffer);
-			function =	parse.parse();	
+			function = parse.parse();
 		}
 
 		if (function) {
-			DrawFunctionGraph(function, x_axis_start_buffer, x_axis_end_buffer);
+			DrawFunctionGraph(function, x_axis_start_buffer, x_axis_end_buffer, continuous_check_buffer_x1, continuous_check_buffer_x2);
 			MCSC_Check(function, x_axis_start_buffer, x_axis_end_buffer, continuous_check_buffer_x1, continuous_check_buffer_x2);
 		}
 		ImGui::Render();
@@ -385,4 +347,4 @@ int main()
 	SDL_Quit();
 	return 0;
 }
-  
+

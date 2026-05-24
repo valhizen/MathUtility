@@ -92,7 +92,8 @@ public:
 
 	std::function<float(float)> ParsePrimary() {
 
-		if (function_token.is(Token::Kind::Minus)) {
+		if (function_token.is(Token::Kind::Minus))
+		{
 			Lexer_next();
 			auto operand = ParsePrimary();
 			return [o = operand](float x) { return -o(x); };
@@ -139,7 +140,8 @@ public:
 			return [](float x) { return x; };
 		}
 
-		if (function_token.is(Token::Kind::LeftParen)) {
+		if (function_token.is(Token::Kind::LeftParen))
+		{
 			Lexer_next();
 			auto arg = ParseExpression();
 			if (function_token.is(Token::Kind::RightParen)) Lexer_next();
