@@ -9,9 +9,15 @@
 #include "Lexer.hpp"
 #include "Parser.hpp"
 
-float epsilon = 0.0001f;
+float epsilon = 0.0005f;
 float tolerance = 0.001f;
 int samples = 1000;
+
+struct IterationData {
+	int   iteration;
+	float a, b, x0, fx0, interval_length;
+};
+
 
 
 static bool isContinuousAtPoint(std::function<float(float)> func, float point) {
@@ -59,39 +65,29 @@ static bool CheckIntermediateValueTherom(std::function<float(float)> func, float
 std::function<float(float)> function = nullptr;
 
 
-static float findRoot(std::function<float(float)> func, float x1, float x2) {
-	int itteration = 120000;
 
-	float point_1;
+static float findRoot(std::function<float(float)> func, float x1, float x2, std::vector<IterationData>* out_iterations = nullptr) {
 
-	float point_2;
+	float point_1, point_2;
+	if (func(x1) > 0) { point_1 = x2; point_2 = x1; }
+	else { point_1 = x1; point_2 = x2; }
 
-	if (func(x1) > 0) {
-		point_1 = x2;
-		point_2 = x1;
-	}
-	else {
-		point_1 = x1;
-		point_2 = x2;
-	}
-
-
-
-	float mid;
-
-	for (int i = 0; i < itteration; i++) {
-		mid = (point_1 + point_2) / 2;
+	float mid = 0.0f;
+	for (int i = 0; i < 120000; i++) {
+		mid = (point_1 + point_2) / 2.0f;
 		float value = func(mid);
-		if (value < 0) {
-			point_1 = mid;
+
+		if (out_iterations) {
+			out_iterations->push_back({ i + 1, point_1, point_2, mid, value, std::abs(point_2 - point_1) });
 		}
-		else {
-			point_2 = mid;
-		}
+
+		if (std::abs(point_2 - point_1) < 0.0005f) break;
+
+		if (value < 0) point_1 = mid;
+		else           point_2 = mid;
 	}
 
 	return mid;
-
 }
 
 static void MCSC_Check(std::function<float(float) > func, char* x_start_value, char* x_end_value, char* game_value_x1, char* game_value_x2) {
@@ -134,8 +130,37 @@ static void MCSC_Check(std::function<float(float) > func, char* x_start_value, c
 	{
 		ImGui::Text("Function does not satisfies Immediate Value Theorem");
 	}
-	float root = findRoot(func, continuous_check_x1, continuous_check_x2);
+
+	std::vector<IterationData> iterations;
+	float root = findRoot(func, continuous_check_x1, continuous_check_x2, &iterations);
+
 	ImGui::Text("The Root of the Equation is %f", root);
+	ImGui::Text("Converged after %d iterations", (int)iterations.size());
+
+	// Iteration table
+	ImGui::Spacing();
+	if (ImGui::BeginTable("IterTable", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 300))) {
+
+		ImGui::TableSetupColumn("Iter", ImGuiTableColumnFlags_WidthFixed, 40);
+		ImGui::TableSetupColumn("a", ImGuiTableColumnFlags_WidthFixed, 110);
+		ImGui::TableSetupColumn("b", ImGuiTableColumnFlags_WidthFixed, 110);
+		ImGui::TableSetupColumn("x0", ImGuiTableColumnFlags_WidthFixed, 110);
+		ImGui::TableSetupColumn("f(x0)", ImGuiTableColumnFlags_WidthFixed, 130);
+		ImGui::TableSetupColumn("|b-a|", ImGuiTableColumnFlags_WidthFixed, 110);
+		ImGui::TableHeadersRow();
+
+		for (const IterationData& row : iterations) {
+			ImGui::TableNextRow();
+			ImGui::TableNextColumn(); ImGui::Text("%d", row.iteration);
+			ImGui::TableNextColumn(); ImGui::Text("%.6f", row.a);
+			ImGui::TableNextColumn(); ImGui::Text("%.6f", row.b);
+			ImGui::TableNextColumn(); ImGui::Text("%.6f", row.x0);
+			ImGui::TableNextColumn(); ImGui::Text("%.6e", row.fx0);
+			ImGui::TableNextColumn(); ImGui::Text("%.6f", row.interval_length);
+		}
+
+		ImGui::EndTable();
+	}
 
 	ImGui::End();
 }
