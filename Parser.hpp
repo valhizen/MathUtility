@@ -1,6 +1,11 @@
 #pragma once 
 
 #include "Lexer.hpp"
+#include <cmath>
+#include <cstdlib>
+#include <functional>
+#include <limits>
+#include <string>
 
 // Needs to turn the Lexer token in std::function<float(float)>
 class Parser {
@@ -133,9 +138,16 @@ public:
 				if (name == "ln")   return [a = arg](float x) { return std::log(a(x));   };
 				if (name == "sqrt") return [a = arg](float x) { return std::sqrt(a(x));  };
 				if (name == "abs")  return [a = arg](float x) { return std::abs(a(x));   };
+				if (name == "exp")   return [a = arg](float x) { return std::exp(a(x));  };
+				if (name == "floor") return [a = arg](float x) { return std::floor(a(x));};
+				if (name == "ceil")  return [a = arg](float x) { return std::ceil(a(x)); };
+				if (name == "round") return [a = arg](float x) { return std::round(a(x));};
+				if (name == "sign")  return [a = arg](float x) { return (a(x) > 0.f) ? 1.f : (a(x) < 0.f) ? -1.f : 0.f; };
 
 				return arg; // unknown function, just pass through its argument
 			}
+			if (name == "pi") return [](float) { return  3.14159265358979323846f;  };
+			if (name == "e")  return [](float) { return 2.71828182845904523536f;   };
 
 			return [](float x) { return x; };
 		}

@@ -3,7 +3,5 @@
 
 #pragma once
 
-#include <iostream>
-#include <functional>
 
 // TODO: Reference additional headers your program requires here.

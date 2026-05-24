@@ -2,12 +2,21 @@
 
 #include "MCSC202.h"
 #include <imgui.h>
-#include <SDL3/SDL.h>
 #include "imgui_impl_sdl3.h"
 #include "imgui_impl_opengl3.h"
 #include <SDL3/SDL_opengl.h>
-#include "Lexer.hpp"
 #include "Parser.hpp"
+#include <algorithm>
+#include <cfloat>
+#include <cmath>
+#include <cstdio>
+#include <cstdlib>
+#include <functional>
+#include <vector>
+#include "SDL3/SDL_error.h"
+#include "SDL3/SDL_events.h"
+#include "SDL3/SDL_init.h"
+#include "SDL3/SDL_video.h"
 
 float epsilon = 0.0005f;
 float tolerance = 0.001f;
@@ -136,31 +145,33 @@ static void MCSC_Check(std::function<float(float) > func, char* x_start_value, c
 
 	ImGui::Text("The Root of the Equation is %f", root);
 	ImGui::Text("Converged after %d iterations", (int)iterations.size());
+	if (func(continuous_check_x1) * func(continuous_check_x2) < 0) {
+		ImGui::Spacing();
+		if (ImGui::BeginTable("IterTable", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 300))) {
 
-	// Iteration table
-	ImGui::Spacing();
-	if (ImGui::BeginTable("IterTable", 6, ImGuiTableFlags_Borders | ImGuiTableFlags_RowBg | ImGuiTableFlags_ScrollY, ImVec2(0, 300))) {
+			ImGui::TableSetupColumn("Iter", ImGuiTableColumnFlags_WidthFixed, 40);
+			ImGui::TableSetupColumn("a", ImGuiTableColumnFlags_WidthFixed, 110);
+			ImGui::TableSetupColumn("b", ImGuiTableColumnFlags_WidthFixed, 110);
+			ImGui::TableSetupColumn("x0", ImGuiTableColumnFlags_WidthFixed, 110);
+			ImGui::TableSetupColumn("f(x0)", ImGuiTableColumnFlags_WidthFixed, 130);
+			ImGui::TableSetupColumn("|b-a|", ImGuiTableColumnFlags_WidthFixed, 110);
+			ImGui::TableHeadersRow();
 
-		ImGui::TableSetupColumn("Iter", ImGuiTableColumnFlags_WidthFixed, 40);
-		ImGui::TableSetupColumn("a", ImGuiTableColumnFlags_WidthFixed, 110);
-		ImGui::TableSetupColumn("b", ImGuiTableColumnFlags_WidthFixed, 110);
-		ImGui::TableSetupColumn("x0", ImGuiTableColumnFlags_WidthFixed, 110);
-		ImGui::TableSetupColumn("f(x0)", ImGuiTableColumnFlags_WidthFixed, 130);
-		ImGui::TableSetupColumn("|b-a|", ImGuiTableColumnFlags_WidthFixed, 110);
-		ImGui::TableHeadersRow();
+			for (const IterationData& row : iterations) {
+				ImGui::TableNextRow();
+				ImGui::TableNextColumn(); ImGui::Text("%d", row.iteration);
+				ImGui::TableNextColumn(); ImGui::Text("%.6f", row.a);
+				ImGui::TableNextColumn(); ImGui::Text("%.6f", row.b);
+				ImGui::TableNextColumn(); ImGui::Text("%.6f", row.x0);
+				ImGui::TableNextColumn(); ImGui::Text("%.6e", row.fx0);
+				ImGui::TableNextColumn(); ImGui::Text("%.6f", row.interval_length);
+			}
 
-		for (const IterationData& row : iterations) {
-			ImGui::TableNextRow();
-			ImGui::TableNextColumn(); ImGui::Text("%d", row.iteration);
-			ImGui::TableNextColumn(); ImGui::Text("%.6f", row.a);
-			ImGui::TableNextColumn(); ImGui::Text("%.6f", row.b);
-			ImGui::TableNextColumn(); ImGui::Text("%.6f", row.x0);
-			ImGui::TableNextColumn(); ImGui::Text("%.6e", row.fx0);
-			ImGui::TableNextColumn(); ImGui::Text("%.6f", row.interval_length);
+			ImGui::EndTable();
 		}
-
-		ImGui::EndTable();
 	}
+	// Iteration table
+
 
 	ImGui::End();
 }
