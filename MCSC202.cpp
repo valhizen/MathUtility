@@ -260,8 +260,6 @@ static void DrawFunctionGraph(std::function<float(float)> value, char* x_start_v
 }
 
 
-
-
 static char input_buffer[128];
 
 static char x_axis_start_buffer[128];
@@ -331,8 +329,6 @@ int main()
 	ImGui_ImplOpenGL3_Init();
 
 
-	// Setup Platform/Renderer backends
-	ImGui_ImplSDL3_InitForOpenGL(window, gl_context);
 
 	//Note : Sarbesh " Need to Do this Later"
 	//ImGui_ImplOpenGL3_Init(glsl_version);
